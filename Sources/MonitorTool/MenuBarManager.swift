@@ -8,7 +8,7 @@ final class MenuBarManager: ObservableObject {
     @Published var menuText: String = "Loading..."
 
     private var statusItem: NSStatusItem?
-    private let store: MetricsStore
+    let store: MetricsStore
     private var cancellables = Set<AnyCancellable>()
     private var popupWindow: PopupWindow?
 
@@ -40,6 +40,14 @@ final class MenuBarManager: ObservableObject {
             .store(in: &cancellables)
     }
 
+    func removeStatusBar() {
+        if let statusItem = statusItem {
+            NSStatusBar.system.removeStatusItem(statusItem)
+            self.statusItem = nil
+        }
+        popupWindow?.close()
+    }
+
     @objc private func handleClick() {
         guard let event = NSApp.currentEvent else { return }
         if event.type == .leftMouseUp {
@@ -51,7 +59,7 @@ final class MenuBarManager: ObservableObject {
 
     private func showPopup() {
         if popupWindow == nil {
-            popupWindow = PopupWindow(store: store)
+            popupWindow = PopupWindow(store: self)
         }
         popupWindow?.show()
     }
@@ -60,12 +68,35 @@ final class MenuBarManager: ObservableObject {
         showPopup()
     }
 
+    @objc func quitApp() {
+        store.stop()
+        NSApplication.shared.terminate(nil)
+    }
+
     private func showContextMenu() {
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Details...", action: #selector(showPopupFromMenu), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Show Details", action: #selector(showPopupFromMenu), keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit MonitorTool", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Hide Menu Bar Item", action: #selector(removeStatusBarItem), keyEquivalent: "h"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Quit MonitorTool", action: #selector(quitApp), keyEquivalent: "q"))
         statusItem?.menu = menu
         statusItem?.button?.performClick(nil)
+    }
+
+    @objc func removeStatusBarItem() {
+        // Hide the status bar item (can be reopened by relaunching the app)
+        store.stop()
+        removeStatusBar()
+        // Show a brief alert before fully hiding
+        let alert = NSAlert()
+        alert.messageText = "Menu Bar Item Hidden"
+        alert.informativeText = "The menu bar item has been hidden. To show it again, relaunch MonitorTool.\n\n選單列項目已隱藏。要重新顯示，請重新啟動 MonitorTool。"
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Quit")
+        let response = alert.runModal()
+        if response == .alertSecondButtonReturn {
+            NSApplication.shared.terminate(nil)
+        }
     }
 }

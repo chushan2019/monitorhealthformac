@@ -5,10 +5,12 @@ import SwiftUI
 final class PopupWindow {
     private var panel: NSPanel?
     private let store: MetricsStore
+    private let menuBarManager: MenuBarManager
     private var hostingView: NSHostingView<PopupView>?
 
-    init(store: MetricsStore) {
-        self.store = store
+    init(store: MenuBarManager) {
+        self.store = store.store
+        self.menuBarManager = store
     }
 
     func show() {
@@ -18,7 +20,7 @@ final class PopupWindow {
             return
         }
 
-        let view = PopupView(store: store)
+        let view = PopupView(store: store, menuBarManager: menuBarManager)
         hostingView = NSHostingView(rootView: view)
 
         let panel = NSPanel(
@@ -44,5 +46,10 @@ final class PopupWindow {
 
         self.panel = panel
         panel.makeKeyAndOrderFront(nil)
+    }
+
+    func close() {
+        panel?.orderOut(nil)
+        panel = nil
     }
 }
