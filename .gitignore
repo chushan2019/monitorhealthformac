@@ -1,0 +1,32 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+*.swiftpm/
+DerivedData/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Build outputs
+dist/
+*.dmg
+*.zip
+
+# IDE
+*.sublime-*
+*.code-workspace
+
+# Temp files
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
